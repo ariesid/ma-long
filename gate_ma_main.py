@@ -400,6 +400,9 @@ class TradingBot:
                         avg_sl = (entry_1['stop_loss'] + entry_2['stop_loss']) / 2
                         avg_tp = (entry_1['take_profit'] + entry_2['take_profit']) / 2
                     
+                    # Calculate risk amount (USDT value at risk)
+                    risk_amount = total_size * avg_entry
+                    
                     # Store position details in flat structure for risk_manager
                     self.current_position = {
                         'side': side,
@@ -408,6 +411,7 @@ class TradingBot:
                         'stop_loss': avg_sl,
                         'position_size': total_size,
                         'remaining_size': total_size,
+                        'risk_amount': risk_amount,
                         'tp1': avg_tp,
                         'tp1_percent': self.config.get('tp1_percent', 30),
                         'tp2': None,
@@ -459,6 +463,9 @@ class TradingBot:
                 avg_sl = (entry_1['stop_loss'] + entry_2['stop_loss']) / 2
                 avg_tp = (entry_1['take_profit'] + entry_2['take_profit']) / 2
             
+            # Calculate risk amount (USDT value at risk)
+            risk_amount = total_size * avg_entry
+            
             # Store simulated position in flat structure for risk_manager
             self.current_position = {
                 'side': side,
@@ -468,6 +475,7 @@ class TradingBot:
                 'stop_loss': avg_sl,
                 'position_size': total_size,
                 'remaining_size': total_size,
+                'risk_amount': risk_amount,
                 'tp1': avg_tp,
                 'tp1_percent': self.config.get('tp1_percent', 30),
                 'tp2': None,
