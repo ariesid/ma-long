@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import argparse
+import json
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Optional, Dict
@@ -71,12 +72,58 @@ class TradingBot:
         self.current_position = None
         self.trade_history = []
         self.equity = 0.0
+        self.position_file = "position_state.json"
         
         # Data
         self.df = None
         self.last_update = None
         
+        # Load saved position if exists
+        self._load_position_state()
+        
         self.logger.info("Trading bot initialized successfully")
+    
+    def _save_position_state(self):
+        """Save current position to disk for persistence"""
+        try:
+            if self.current_position is None:
+                # No position, remove file if exists
+                if os.path.exists(self.position_file):
+                    os.remove(self.position_file)
+                return
+            
+            # Convert datetime to string for JSON serialization
+            position_data = self.current_position.copy()
+            if 'entry_time' in position_data and isinstance(position_data['entry_time'], datetime):
+                position_data['entry_time'] = position_data['entry_time'].isoformat()
+            
+            with open(self.position_file, 'w') as f:
+                json.dump(position_data, f, indent=2)
+            
+            self.logger.info(f"Position state saved to {self.position_file}")
+        except Exception as e:
+            self.logger.error(f"Failed to save position state: {e}")
+    
+    def _load_position_state(self):
+        """Load saved position from disk on startup"""
+        try:
+            if not os.path.exists(self.position_file):
+                self.logger.info("No saved position found")
+                return
+            
+            with open(self.position_file, 'r') as f:
+                position_data = json.load(f)
+            
+            # Convert entry_time string back to datetime
+            if 'entry_time' in position_data and isinstance(position_data['entry_time'], str):
+                position_data['entry_time'] = datetime.fromisoformat(position_data['entry_time'])
+            
+            self.current_position = position_data
+            self.logger.info(f"Loaded saved position: {position_data['side']} @ {position_data['entry_price']:.4f}")
+            print(f"{Fore.CYAN}✓ Resumed position: {position_data['side'].upper()} @ {position_data['entry_price']:.4f}{Style.RESET_ALL}")
+        except Exception as e:
+            self.logger.error(f"Failed to load position state: {e}")
+            self.current_position = None
     
     def _load_config(self) -> Dict:
         """Load configuration from environment variables"""
@@ -428,6 +475,9 @@ class TradingBot:
                         stop_loss=avg_sl,
                         take_profits={'tp1': avg_tp}
                     )
+                    
+                    # Save position to disk
+                    self._save_position_state()
                 else:
                     error_msg = result_2.get('message', 'Unknown error')
                     self.logger.log_order_error(symbol, side, Exception(error_msg))
@@ -493,6 +543,9 @@ class TradingBot:
                 take_profits={'tp1': avg_tp}
             )
             
+            # Save position to disk
+            self._save_position_state()
+            
             print(f"{Fore.YELLOW}[DRY RUN] Entry 1: {entry_1['position_size']:.6f} @ {entry_1['price']:.4f} ({self.config['entry_1_percent']}%){Style.RESET_ALL}")
             print(f"{Fore.YELLOW}[DRY RUN] Entry 2: {entry_2['position_size']:.6f} @ {entry_2['price']:.4f} ({self.config['entry_2_percent']}%){Style.RESET_ALL}")
             
@@ -515,6 +568,9 @@ class TradingBot:
         )
         
         self.current_position = updated_position
+        
+        # Save updated position (TP hits, trailing stop updates)
+        self._save_position_state()
         
         # Handle actions
         if action == "stop_loss":
@@ -615,6 +671,9 @@ class TradingBot:
             
             # Clear position
             self.current_position = None
+            
+            # Remove saved position file
+            self._save_position_state()
             
         except Exception as e:
             self.logger.log_exception(e, "close_position")
