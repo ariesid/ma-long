@@ -521,20 +521,56 @@ class TradingBot:
             self.close_position("Stop loss hit", current_price)
         elif action == "tp1":
             print(f"{Fore.GREEN}✓ TP1 hit at {current_price:.4f}{Style.RESET_ALL}")
+            # Calculate size to close at TP1 (based on ORIGINAL position size before reduction)
+            tp1_size = self.current_position['position_size'] * (self.current_position.get('tp1_percent', 30) / 100)
+            
+            # Execute partial exit if not in paper trading mode
+            if not self.config.get('paper_trading', True):
+                try:
+                    # Place market sell order for TP1 portion
+                    result = self.api.create_market_order(
+                        symbol=self.config['trading_pair'],
+                        side='sell' if self.current_position['side'] == 'long' else 'buy',
+                        amount=tp1_size,
+                        account=self.config.get('account', 'spot')
+                    )
+                    print(f"{Fore.GREEN}→ Executed TP1 exit: {tp1_size:.6f} @ {current_price:.4f}{Style.RESET_ALL}")
+                except Exception as e:
+                    self.logger.error(f"Failed to execute TP1 order: {e}")
+                    print(f"{Fore.RED}✗ Failed to execute TP1 order: {e}{Style.RESET_ALL}")
+            
             self.logger.log_partial_exit(
                 self.config['trading_pair'],
                 self.current_position['side'],
                 current_price,
-                self.current_position['position_size'] * (self.current_position.get('tp1_percent', 30) / 100),
+                tp1_size,
                 "TP1"
             )
         elif action == "tp2":
             print(f"{Fore.GREEN}✓ TP2 hit at {current_price:.4f}{Style.RESET_ALL}")
+            # Calculate size to close at TP2 (based on ORIGINAL position size before reduction)
+            tp2_size = self.current_position['position_size'] * (self.current_position.get('tp2_percent', 40) / 100)
+            
+            # Execute partial exit if not in paper trading mode
+            if not self.config.get('paper_trading', True):
+                try:
+                    # Place market sell order for TP2 portion
+                    result = self.api.create_market_order(
+                        symbol=self.config['trading_pair'],
+                        side='sell' if self.current_position['side'] == 'long' else 'buy',
+                        amount=tp2_size,
+                        account=self.config.get('account', 'spot')
+                    )
+                    print(f"{Fore.GREEN}→ Executed TP2 exit: {tp2_size:.6f} @ {current_price:.4f}{Style.RESET_ALL}")
+                except Exception as e:
+                    self.logger.error(f"Failed to execute TP2 order: {e}")
+                    print(f"{Fore.RED}✗ Failed to execute TP2 order: {e}{Style.RESET_ALL}")
+            
             self.logger.log_partial_exit(
                 self.config['trading_pair'],
                 self.current_position['side'],
                 current_price,
-                self.current_position['position_size'] * (self.current_position.get('tp2_percent', 40) / 100),
+                tp2_size,
                 "TP2"
             )
         elif action == "trailing_stop":
