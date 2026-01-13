@@ -403,6 +403,9 @@ class TradingBot:
                 symbol, entry_1['price'], entry_1['position_size']
             )
             
+            # Log Entry 1 placement
+            self.logger.info(f"Placing Entry 1: {entry_1['position_size']:.6f} {symbol} @ {entry_1['price']:.4f} ({self.config['entry_1_percent']}%)")
+            
             result_1 = self.api.create_limit_order(
                 symbol=symbol,
                 side='buy' if side == 'long' else 'sell',
@@ -415,7 +418,11 @@ class TradingBot:
             
             if result_1.get('status') in ['open', 'closed']:
                 order_id_1 = result_1.get('id')
+                self.logger.info(f"✓ Entry 1 executed: Order ID {order_id_1} | {entry_1['position_size']:.6f} @ {entry_1['price']:.4f}")
                 print(f"{Fore.GREEN}✓ Entry 1 placed: {entry_1['position_size']:.6f} @ {entry_1['price']:.4f} ({self.config['entry_1_percent']}%){Style.RESET_ALL}")
+                
+                # Log Entry 2 placement
+                self.logger.info(f"Placing Entry 2: {entry_2['position_size']:.6f} {symbol} @ {entry_2['price']:.4f} ({self.config['entry_2_percent']}%)")
                 
                 # Execute Entry 2
                 price_2_str, amount_2_str = self._format_order_params(
@@ -434,6 +441,7 @@ class TradingBot:
                 
                 if result_2.get('status') in ['open', 'closed']:
                     order_id_2 = result_2.get('id')
+                    self.logger.info(f"✓ Entry 2 executed: Order ID {order_id_2} | {entry_2['position_size']:.6f} @ {entry_2['price']:.4f}")
                     print(f"{Fore.GREEN}✓ Entry 2 placed: {entry_2['position_size']:.6f} @ {entry_2['price']:.4f} ({self.config['entry_2_percent']}%){Style.RESET_ALL}")
                     
                     # Calculate weighted averages
@@ -441,14 +449,16 @@ class TradingBot:
                     if total_size > 0:
                         avg_entry = (entry_1['price'] * entry_1['position_size'] + entry_2['price'] * entry_2['position_size']) / total_size
                         avg_sl = (entry_1['stop_loss'] * entry_1['position_size'] + entry_2['stop_loss'] * entry_2['position_size']) / total_size
-                        avg_tp = (entry_1['take_profit'] * entry_1['position_size'] + entry_2['take_profit'] * entry_2['position_size']) / total_size
                     else:
                         avg_entry = (entry_1['price'] + entry_2['price']) / 2
                         avg_sl = (entry_1['stop_loss'] + entry_2['stop_loss']) / 2
-                        avg_tp = (entry_1['take_profit'] + entry_2['take_profit']) / 2
                     
                     # Calculate risk amount (USDT value at risk)
                     risk_amount = total_size * avg_entry
+                    
+                    # Use separate TP1 and TP2 targets from strategy (not averaged)
+                    tp1_price = entry_1['take_profit']  # From Entry 1 (TP1_RR = 1.0)
+                    tp2_price = entry_2['take_profit']  # From Entry 2 (TP2_RR = 2.0)
                     
                     # Store position details in flat structure for risk_manager
                     self.current_position = {
@@ -459,10 +469,10 @@ class TradingBot:
                         'position_size': total_size,
                         'remaining_size': total_size,
                         'risk_amount': risk_amount,
-                        'tp1': avg_tp,
+                        'tp1': tp1_price,
                         'tp1_percent': self.config.get('tp1_percent', 30),
-                        'tp2': None,
-                        'tp2_percent': 0,
+                        'tp2': tp2_price,
+                        'tp2_percent': self.config.get('tp2_percent', 50),
                         'trailing_stop': None,
                         'order_ids': [order_id_1, order_id_2]
                     }
@@ -473,7 +483,7 @@ class TradingBot:
                         entry_price=avg_entry,
                         size=total_size,
                         stop_loss=avg_sl,
-                        take_profits={'tp1': avg_tp}
+                        take_profits={'tp1': tp1_price, 'tp2': tp2_price}
                     )
                     
                     # Save position to disk
@@ -507,14 +517,16 @@ class TradingBot:
             if total_size > 0:
                 avg_entry = (entry_1['price'] * entry_1['position_size'] + entry_2['price'] * entry_2['position_size']) / total_size
                 avg_sl = (entry_1['stop_loss'] * entry_1['position_size'] + entry_2['stop_loss'] * entry_2['position_size']) / total_size
-                avg_tp = (entry_1['take_profit'] * entry_1['position_size'] + entry_2['take_profit'] * entry_2['position_size']) / total_size
             else:
                 avg_entry = (entry_1['price'] + entry_2['price']) / 2
                 avg_sl = (entry_1['stop_loss'] + entry_2['stop_loss']) / 2
-                avg_tp = (entry_1['take_profit'] + entry_2['take_profit']) / 2
             
             # Calculate risk amount (USDT value at risk)
             risk_amount = total_size * avg_entry
+            
+            # Use separate TP1 and TP2 targets from strategy (not averaged)
+            tp1_price = entry_1['take_profit']  # From Entry 1 (TP1_RR = 1.0)
+            tp2_price = entry_2['take_profit']  # From Entry 2 (TP2_RR = 2.0)
             
             # Store simulated position in flat structure for risk_manager
             self.current_position = {
@@ -526,10 +538,10 @@ class TradingBot:
                 'position_size': total_size,
                 'remaining_size': total_size,
                 'risk_amount': risk_amount,
-                'tp1': avg_tp,
+                'tp1': tp1_price,
                 'tp1_percent': self.config.get('tp1_percent', 30),
-                'tp2': None,
-                'tp2_percent': 0,
+                'tp2': tp2_price,
+                'tp2_percent': self.config.get('tp2_percent', 50),
                 'trailing_stop': None
             }
             
@@ -540,7 +552,7 @@ class TradingBot:
                 entry_price=avg_entry,
                 size=total_size,
                 stop_loss=avg_sl,
-                take_profits={'tp1': avg_tp}
+                take_profits={'tp1': tp1_price, 'tp2': tp2_price}
             )
             
             # Save position to disk
