@@ -2,5 +2,5 @@
 # .env
 __pycache__/
 *.pyc
-position_state.json
+# position_state.json
 
