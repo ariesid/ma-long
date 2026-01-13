@@ -1,0 +1,19 @@
+2026-01-12 22:00:10 | INFO     | Trading bot initialized successfully
+2026-01-12 22:00:10 | INFO     | Bot started with config: {'api_key': 'd06d313750be881178426e1197cbd9b2', 'secret_key': '52598af3c02c5ba9f8ca81acfbd3f968b38067b192964b05cd41afeed72f2522', 'use_testnet': True, 'account': 'spot', 'trading_pair': 'SOL_USDT', 'timeframe': '1H', 'ema_short': 12, 'ema_long': 26, 'rsi_length': 14, 'rsi_min': 40.0, 'rsi_max': 70.0, 'adx_period': 14, 'adx_threshold': 25.0, 'atr_period': 14, 'max_usdt_per_trade': 50.0, 'entry_1_percent': 30.0, 'entry_2_percent': 70.0, 'sl_atr_multiplier': 2.5, 'trailing_atr_multiplier': 2.0, 'tp1_rr': 1.0, 'tp1_percent': 30.0, 'tp2_rr': 2.0, 'tp2_percent': 50.0, 'max_candles_hold': 18, 'dry_run': False, 'log_level': 'INFO', 'use_volume_filter': True, 'volume_ma_period': 20}
+2026-01-12 22:00:10 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-12 22:13:48 | INFO     | No saved position found
+2026-01-12 22:13:48 | INFO     | Trading bot initialized successfully
+2026-01-12 22:13:48 | INFO     | Bot started with config: {'api_key': 'd06d313750be881178426e1197cbd9b2', 'secret_key': '52598af3c02c5ba9f8ca81acfbd3f968b38067b192964b05cd41afeed72f2522', 'use_testnet': True, 'account': 'spot', 'trading_pair': 'SOL_USDT', 'timeframe': '1H', 'ema_short': 12, 'ema_long': 26, 'rsi_length': 14, 'rsi_min': 40.0, 'rsi_max': 70.0, 'adx_period': 14, 'adx_threshold': 25.0, 'atr_period': 14, 'max_usdt_per_trade': 50.0, 'entry_1_percent': 30.0, 'entry_2_percent': 70.0, 'sl_atr_multiplier': 2.5, 'trailing_atr_multiplier': 2.0, 'tp1_rr': 1.0, 'tp1_percent': 30.0, 'tp2_rr': 2.0, 'tp2_percent': 50.0, 'max_candles_hold': 18, 'dry_run': False, 'log_level': 'INFO', 'use_volume_filter': True, 'volume_ma_period': 20}
+2026-01-12 22:13:49 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-12 23:13:49 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-13 00:13:50 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-13 01:13:51 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-13 02:13:51 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-13 03:13:52 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-13 04:13:53 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 69.2574
+2026-01-13 05:13:54 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 34.4397
+2026-01-13 06:13:54 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 34.4397
+2026-01-13 07:13:55 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 34.4397
+2026-01-13 08:13:56 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 34.4397
+2026-01-13 09:13:56 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 34.4397
+2026-01-13 10:13:57 | INFO     | BALANCE | USDT | Available: 2146.2336 | Frozen: 34.4397
