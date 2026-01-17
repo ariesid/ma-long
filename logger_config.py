@@ -37,6 +37,7 @@ class BotLogger:
         self.trade_logger = self._setup_logger("trade", "trading")
         self.error_logger = self._setup_logger("error", "errors")
         self.bot_logger = self._setup_logger("bot", "bot")
+        self.strategy_logger = self._setup_logger("strategy", "strategy")
     
     def _setup_logger(self, name: str, file_prefix: str) -> logging.Logger:
         """

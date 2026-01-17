@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Optional, Tuple
 from indicators import Indicators
+import logging
+from datetime import datetime
 
 
 class TradingStrategy:
@@ -39,6 +41,35 @@ class TradingStrategy:
         """
         # Simpan config yang diterima
         self.config = config  # Pastikan config ada
+        
+        # Setup logger for condition checks
+        self.logger = logging.getLogger('strategy')
+        if not self.logger.handlers:
+            self.logger.setLevel(logging.INFO)
+            
+            # Console handler with colors for terminal
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.INFO)
+            console_formatter = logging.Formatter(
+                '%(message)s'  # Simple format for console
+            )
+            console_handler.setFormatter(console_formatter)
+            
+            # File handler for detailed logs
+            from pathlib import Path
+            log_dir = Path("logs")
+            log_dir.mkdir(exist_ok=True)
+            log_file = log_dir / f"strategy_{datetime.now().strftime('%Y%m%d')}.log"
+            file_handler = logging.FileHandler(log_file, encoding='utf-8')
+            file_handler.setLevel(logging.INFO)
+            file_formatter = logging.Formatter(
+                '%(asctime)s | %(levelname)-8s | %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            file_handler.setFormatter(file_formatter)
+            
+            self.logger.addHandler(console_handler)
+            self.logger.addHandler(file_handler)
         
         # EMA settings
         self.ema_short = config.get('ema_short', 9)
@@ -133,14 +164,74 @@ class TradingStrategy:
         
         # Condition 4: Volume filter (optional)
         volume_condition = True
+        volume_ratio = 0.0
         if self.use_volume_filter and 'volume' in df.columns:
-            volume_condition = latest.get('volume', 0) >= latest.get('volume_ma', 0)
+            volume_ma = latest.get('volume_ma', 1)
+            volume_ratio = latest.get('volume', 0) / volume_ma if volume_ma > 0 else 0
+            volume_condition = latest.get('volume', 0) >= volume_ma
         details['volume_valid'] = volume_condition
+        details['volume_ratio'] = volume_ratio
+        
+        # Log detailed condition checks
+        # Condition 1: EMA Trend Alignment
+        price_above_short = latest['close'] > latest['ema_short']
+        short_above_long = latest['ema_short'] > latest['ema_long']
+        self.logger.info(
+            f"{'✓' if ema_condition else '✗'} Condition 1: EMA Trend - "
+            f"Price>{self.ema_short}EMA: {price_above_short}, "
+            f"{self.ema_short}EMA>{self.ema_long}EMA: {short_above_long} "
+            f"(Price: {latest['close']:.4f}, EMA{self.ema_short}: {latest['ema_short']:.4f}, "
+            f"EMA{self.ema_long}: {latest['ema_long']:.4f})"
+        )
+        
+        # Condition 2: RSI Range
+        self.logger.info(
+            f"{'✓' if rsi_condition else '✗'} Condition 2: RSI in range - "
+            f"RSI: {latest['rsi']:.2f} (Target: {self.rsi_min}-{self.rsi_max})"
+        )
+        
+        # Condition 3: ADX Strength
+        self.logger.info(
+            f"{'✓' if adx_condition else '✗'} Condition 3: ADX strength - "
+            f"ADX: {latest['adx']:.2f} (Threshold: >={self.adx_threshold})"
+        )
+        
+        # Condition 4: Volume
+        if self.use_volume_filter:
+            self.logger.info(
+                f"{'✓' if volume_condition else '✗'} Condition 4: Volume - "
+                f"{latest.get('volume', 0):.2f} vs MA: {latest.get('volume_ma', 0):.2f} "
+                f"(Ratio: {volume_ratio:.2f}x)"
+            )
+        else:
+            self.logger.info(
+                f"⊘ Condition 4: Volume filter disabled"
+            )
+        
+        # Market State Summary
+        self.logger.info(
+            f"Market State - Price: {latest['close']:.4f}, "
+            f"RSI: {latest['rsi']:.2f}, ADX: {latest['adx']:.2f}, "
+            f"EMA{self.ema_short}: {latest['ema_short']:.4f}, "
+            f"EMA{self.ema_long}: {latest['ema_long']:.4f}, "
+            f"Volume: {volume_ratio:.2f}x" if self.use_volume_filter else 
+            f"Market State - Price: {latest['close']:.4f}, "
+            f"RSI: {latest['rsi']:.2f}, ADX: {latest['adx']:.2f}, "
+            f"EMA{self.ema_short}: {latest['ema_short']:.4f}, "
+            f"EMA{self.ema_long}: {latest['ema_long']:.4f}"
+        )
         
         # ⚠️ ALL CONDITIONS MUST BE MET (AND logic)
         # Signal = YES hanya jika EMA ✓ AND RSI ✓ AND ADX ✓ AND Volume ✓
         # Jika salah satu ✗, maka Signal = NO (tidak akan place order)
         entry_signal = ema_condition and rsi_condition and adx_condition and volume_condition
+        
+        # Final signal status
+        self.logger.info(
+            # f"{'=' * 60}\n"
+            f"{'🟢 ENTRY SIGNAL: YES - All conditions met!' if entry_signal else '🔴 ENTRY SIGNAL: NO - One or more conditions failed'}\n"
+            # f"{'=' * 60}"
+        )
         
         details['signal'] = entry_signal
 

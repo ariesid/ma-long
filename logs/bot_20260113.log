@@ -1,8 +1,0 @@
-2026-01-13 13:44:25 | INFO     | No saved position found
-2026-01-13 13:44:25 | INFO     | Trading bot initialized successfully
-2026-01-13 13:44:25 | INFO     | Bot started with config: {'api_key': 'dfee0e4bd30efa11fcf0f7b061e0659d', 'secret_key': '81cb8b571c15c62fbd36de5977ce9a60c9e70ef134280fcbd9afa0e1bbfb533d', 'use_testnet': False, 'account': 'spot', 'trading_pair': 'SOL_USDT', 'timeframe': '1H', 'ema_short': 12, 'ema_long': 26, 'rsi_length': 14, 'rsi_min': 40.0, 'rsi_max': 70.0, 'adx_period': 14, 'adx_threshold': 25.0, 'atr_period': 14, 'max_usdt_per_trade': 50.0, 'entry_1_percent': 30.0, 'entry_2_percent': 70.0, 'sl_atr_multiplier': 2.5, 'trailing_atr_multiplier': 2.0, 'tp1_rr': 1.0, 'tp1_percent': 30.0, 'tp2_rr': 2.0, 'tp2_percent': 50.0, 'max_candles_hold': 18, 'dry_run': False, 'log_level': 'INFO', 'use_volume_filter': True, 'volume_ma_period': 20}
-2026-01-13 13:44:26 | INFO     | BALANCE | USDT | Available: 51.8886 | Frozen: 0.0000
-2026-01-13 14:44:27 | INFO     | BALANCE | USDT | Available: 51.8886 | Frozen: 0.0000
-2026-01-13 15:44:27 | INFO     | BALANCE | USDT | Available: 51.8886 | Frozen: 0.0000
-2026-01-13 16:44:28 | INFO     | BALANCE | USDT | Available: 51.8886 | Frozen: 0.0000
-2026-01-13 16:44:29 | INFO     | Position state saved to position_state.json
